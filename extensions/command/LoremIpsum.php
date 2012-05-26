@@ -9,8 +9,11 @@ class LoremIpsum extends \lithium\console\Command
 {    
     public static $models = array();
     
-    protected $waitingModels = array();
-    
+    /**
+     * Iterates over all of the configured models until they
+     * have all been LoremIpsum-ed. Meaning they have had random
+     * data inserted.
+     */
     public function run()
     {
         $models = $this->models;
@@ -36,8 +39,8 @@ class LoremIpsum extends \lithium\console\Command
     public function generate( $model, $config )
     {
         $defaults = array(
-            'count' => 20,
-            'empty' => array(),
+            'count' => rand(1, 99), // the number of records to create
+            'empty' => array(), // an array of field names to leave empty
         );
         
         $config += $defaults;
@@ -60,6 +63,19 @@ class LoremIpsum extends \lithium\console\Command
         return true;
     }
     
+    /**
+     * Returns a data array to be used on an entity using
+     * the given model and foreign keys.
+     * 
+     * If any field is in $empty, it will be left blank.
+     * 
+     * Any fields with a key set in $foreignKeys will have
+     * a random value chosen from the $foreignKeys[$field] array.
+     * 
+     * @param $model
+     * @param $foreignKeys
+     * @param $empty
+     */
     public function randomRowData( $model, $foreignKeys, $empty )
     {
         $data = array();
@@ -80,6 +96,21 @@ class LoremIpsum extends \lithium\console\Command
         return $data;
     }
     
+    /**
+     * Accepts a field schema and a list of values.
+     * 
+     * If the schema has null set to true, then a
+     * random decision is made to return null.
+     * 
+     * If the list of values is not empty a random value
+     * is chosen from the list and returned.
+     * 
+     * Otherwise, the schema is consulted and a random
+     * value is built with the proper type.
+     * 
+     * @param $schema
+     * @param $values
+     */
     public function randomFieldData( $schema, $values )
     {        
         if( $schema['null'] == true )
@@ -105,6 +136,16 @@ class LoremIpsum extends \lithium\console\Command
         return $value;
     }
     
+    /**
+     * Returns an array where the keys are field names
+     * and the ids are options from the relationship.
+     * 
+     * If false is returned, it means a relationship
+     * is defined that points to a model with no data
+     * in it.
+     * 
+     * @param string $model
+     */
     public function getForeignKeys( $model )
     {
         $foreignKeys = array();
